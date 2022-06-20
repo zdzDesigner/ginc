@@ -16,12 +16,14 @@ import (
 // Contexter wh 接口
 type Contexter interface {
 	ParseReqbody(interface{}) error         // 解析body入参
-	Success(map[string]interface{})         // 标识成功返回状态
+	Success(...map[string]interface{})      // 标识成功返回状态
 	SuccessByte(b []byte, params ...string) // 原生数据
 	Fail(interface{})                       // 标识失败返回状态
 	FailErr(error)                          // 标识失败返回状态
 	GinCtx() *gin.Context                   // 获取gin context
 	ClientPost(api string, params interface{}, options ...map[string]string) (
+		*resty.Response, error) // Post请求
+	ClientPut(api string, params interface{}, options ...map[string]string) (
 		*resty.Response, error) // Post请求
 	ClientGet(api string, params interface{}, options ...map[string]string) (
 		*resty.Response, error) // Get 请求
@@ -58,8 +60,8 @@ func (c *Context) ParamRoute(key string) string {
 func (c *Context) ParseReqbody(reqbody interface{}) error {
 	if err := c.Gin.ShouldBindJSON(reqbody); err != nil {
 		c.Fail(map[string]interface{}{
-			"errorcode": 300400,
-			"errormsg":  fmt.Sprintf("参数解析 :%s", err.Error()),
+			"code":     300400,
+			"errormsg": fmt.Sprintf("参数解析 :%s", err.Error()),
 		})
 		return err
 	}
@@ -67,9 +69,13 @@ func (c *Context) ParseReqbody(reqbody interface{}) error {
 }
 
 // Success 成功
-func (c *Context) Success(data map[string]interface{}) {
-	if data["errorcode"] == nil {
-		data["errorcode"] = 0
+func (c *Context) Success(datas ...map[string]interface{}) {
+	data := make(map[string]interface{})
+	if len(datas) > 0 {
+		data = datas[0]
+	}
+	if data["code"] == nil {
+		data["code"] = 0
 	}
 	if b, err := json.Marshal(data); err != nil {
 		panic(err)
@@ -126,6 +132,11 @@ func (c *Context) rgetint(key string) (i int) {
 func (c *Context) ClientPost(api string, params interface{}, options ...map[string]string) (
 	*resty.Response, error) {
 	return c.request(c.Client.PostRow)(api, params, options...)
+}
+
+func (c *Context) ClientPut(api string, params interface{}, options ...map[string]string) (
+	*resty.Response, error) {
+	return c.request(c.Client.PutRow)(api, params, options...)
 }
 
 // ClientGet method

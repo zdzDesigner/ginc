@@ -33,6 +33,12 @@ func (c *Client) PostRow(api string, params interface{}, options ...map[string]s
 	return c.request(POST, api, params, headers, timeout)
 }
 
+func (c *Client) PutRow(api string, params interface{}, options ...map[string]string) (
+	*resty.Response, map[string]interface{}, error) {
+	headers, timeout := c.cargs(options...)
+	return c.request(PUT, api, params, headers, timeout)
+}
+
 // GetRow method
 func (c *Client) GetRow(api string, params interface{}, options ...map[string]string) (
 	*resty.Response, map[string]interface{}, error) {
