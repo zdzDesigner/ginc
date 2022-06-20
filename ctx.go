@@ -101,8 +101,8 @@ func (c *Context) Fail(data interface{}) {
 
 func (c *Context) FailErr(err error) {
 	c.Fail(map[string]interface{}{
-		"errorcode": 500,
-		"errormsg":  err,
+		"code":     50000,
+		"errormsg": err,
 	})
 }
 
@@ -155,7 +155,7 @@ type requestFunc func(string, interface{}, ...map[string]string) (
 func (c *Context) request(fn requestHander) requestFunc {
 	return func(api string, params interface{}, options ...map[string]string) (*resty.Response, error) {
 		// 新增headers
-		if strings.Contains(api, os.Getenv("SERVER_INTERNAL")) {
+		if strings.Contains(api, os.Getenv("ALTER_HEADER")) {
 			headers := c.Gin.GetStringMapString("headers")
 			if headers != nil {
 				if len(options) == 1 {
